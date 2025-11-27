@@ -281,6 +281,14 @@ require('lazy').setup({
     ---@type Gitsigns.Config
     ---@diagnostic disable-next-line: missing-fields
     opts = {
+      current_line_blame = false, -- toggle to turn on git blame for current line
+      current_line_blame_opts = {
+        virt_text = true,
+        virt_text_pos = 'eol',
+        delay = 300,
+        ignore_whitespace = false,
+      },
+      current_line_blame_formatter = '<author>, <author_time:%R> - <summary>',
       signs = {
         add = { text = '+' }, ---@diagnostic disable-line: missing-fields
         change = { text = '~' }, ---@diagnostic disable-line: missing-fields
