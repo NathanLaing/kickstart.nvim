@@ -1,3 +1,15 @@
+local function make_variants(roots)
+  local variants = {}
+  for _, root in ipairs(roots) do
+    local upper = root:upper()
+    local lower = root:lower()
+
+    table.insert(variants, upper)
+    table.insert(variants, lower)
+  end
+  return variants
+end
+
 --[[
 
 =====================================================================
@@ -247,6 +259,7 @@ rtp:prepend(lazypath)
 --    :Lazy update
 --
 -- NOTE: Here is where you install your plugins.
+-- Warning: this is a warning
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'NMAC427/guess-indent.nvim', -- Detect tabstop and shiftwidth automatically
@@ -703,6 +716,22 @@ require('lazy').setup({
         stylelint_lsp = {},
         ts_ls = {},
 
+        tailwindcss = {
+          -- v4 requires detecting root by package.json or .git, not just tailwind.config.js
+          root_dir = function(fname)
+            local root_pattern = require('lspconfig').util.root_pattern(
+              'tailwind.config.js',
+              'tailwind.config.cjs',
+              'tailwind.config.mjs',
+              'tailwind.config.ts',
+              'postcss.config.js',
+              'package.json',
+              '.git'
+            )
+            return root_pattern(fname)
+          end,
+        },
+
         lua_ls = {
           -- cmd = { ... },
           -- filetypes = { ... },
@@ -780,7 +809,7 @@ require('lazy').setup({
           return nil
         else
           return {
-            timeout_ms = 500,
+            timeout_ms = 3000,
             lsp_format = 'fallback',
           }
         end
@@ -791,8 +820,10 @@ require('lazy').setup({
         -- python = { "isort", "black" },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
-        javascript = { 'prettierd', 'prettier', stop_after_first = true },
-        typescript = { 'prettierd', 'prettier', stop_after_first = true },
+        javascript = { 'eslint_d', 'prettierd' },
+        typescript = { 'eslint_d', 'prettierd' },
+        css = { 'prettierd' },
+        html = { 'prettierd' },
       },
     },
   },
@@ -825,6 +856,7 @@ require('lazy').setup({
           --     require('luasnip.loaders.from_vscode').lazy_load()
           --   end,
           -- },
+          { 'brenoprata10/nvim-highlight-colors', opts = { render = 'virtual', virtual_symbol = '■' } },
         },
         opts = {},
       },
@@ -871,6 +903,31 @@ require('lazy').setup({
         -- By default, you may press `<c-space>` to show the documentation.
         -- Optionally, set `auto_show = true` to show the documentation after a delay.
         documentation = { auto_show = false, auto_show_delay_ms = 500 },
+        menu = {
+          draw = {
+            columns = { { 'kind_icon' }, { 'label', 'label_description', gap = 1 } },
+            components = {
+              kind_icon = {
+                text = function(ctx)
+                  -- Use the highlight-colors plugin to check for a color
+                  local highlight = require('nvim-highlight-colors').format(ctx.item, { kind = ctx.kind })
+                  if highlight and highlight.abbr_hl_group then
+                    -- Return a colored block if a color is found
+                    return '■ '
+                  end
+                  return ctx.kind_icon .. ctx.icon_gap
+                end,
+                highlight = function(ctx)
+                  local highlight = require('nvim-highlight-colors').format(ctx.item, { kind = ctx.kind })
+                  if highlight and highlight.abbr_hl_group then
+                    return highlight.abbr_hl_group
+                  end
+                  return ctx.kind_hl
+                end,
+              },
+            },
+          },
+        },
       },
 
       sources = {
@@ -949,8 +1006,32 @@ require('lazy').setup({
   -- },
 
   -- Highlight todo, notes, etc in comments
-  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
-
+  {
+    'folke/todo-comments.nvim',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    opts = {
+      signs = true,
+      keywords = {
+        FIX = {
+          icon = ' ', -- icon used for the sign, and in search results
+          color = 'error', -- can be a hex color, or a named color
+          alt = make_variants { 'FIXME', 'BUG', 'FIXIT', 'ISSUE' },
+        },
+        TODO = {
+          icon = ' ',
+          color = 'info',
+          alt = make_variants { 'TODO', 'TO DO' },
+        },
+        HACK = { icon = ' ', color = 'warning', alt = make_variants { 'HACK' } },
+        WARN = { icon = ' ', color = 'warning', alt = make_variants { 'WARNING', 'XXX' } },
+        PERF = {
+          icon = ' ',
+          alt = make_variants { 'OPTIMIZE', 'OPTIMISE', 'PERFORMANCE', 'PERF' },
+        },
+        NOTE = { icon = ' ', color = 'hint', alt = make_variants { 'INFO' } },
+      },
+    },
+  },
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
     config = function()
