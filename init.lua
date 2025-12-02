@@ -639,11 +639,25 @@ require('lazy').setup({
         eslint = {},
         html = {},
         jsonls = {},
-        pylsp = {},
         pyright = {},
         stylelint_lsp = {},
         ts_ls = {},
+        ruff = {},
 
+        -- ty = { -- ty
+        --   cmd = { 'ty', 'server' },
+        --   filetypes = { 'python' },
+        --   settings = {
+        --     ty = {
+        --       -- diagnosticMode = 'workspace',
+        --       -- experimental = {
+        --       --   rename = true,
+        --       --   auto_import = true,
+        --       -- },
+        --     },
+        --   },
+        -- },
+        --
         tailwindcss = {
           -- v4 requires detecting root by package.json or .git, not just tailwind.config.js
           root_dir = function(fname)
@@ -758,6 +772,7 @@ require('lazy').setup({
         typescript = { 'eslint_d', 'prettierd' },
         css = { 'prettierd' },
         html = { 'prettierd' },
+        python = { 'ruff' },
       },
     },
   },
@@ -934,6 +949,7 @@ require('lazy').setup({
   -- },
 
   -- Highlight todo, notes, etc in comments
+
   {
     'folke/todo-comments.nvim',
     event = 'VimEnter',
