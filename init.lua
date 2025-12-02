@@ -381,6 +381,7 @@ require('lazy').setup({
         cond = function() return vim.fn.executable 'make' == 1 end,
       },
       { 'nvim-telescope/telescope-ui-select.nvim' },
+      { 'nvim-telescope/telescope-live-grep-args.nvim' },
 
       -- Useful for getting pretty icons, but requires a Nerd Font.
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
@@ -407,6 +408,9 @@ require('lazy').setup({
 
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
+
+      local lga_actions = require 'telescope-live-grep-args.actions'
+
       require('telescope').setup {
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
@@ -418,13 +422,26 @@ require('lazy').setup({
         -- },
         -- pickers = {}
         extensions = {
-          ['ui-select'] = { require('telescope.themes').get_dropdown() },
+          ['ui-select'] = {
+            require('telescope.themes').get_dropdown(),
+          },
+          live_grep_args = {
+            auto_quoting = true,
+            mappings = {
+              i = {
+                ['<C-k>'] = lga_actions.quote_prompt(),
+                ['<C-i>'] = lga_actions.quote_prompt { postfix = ' --iglob ' },
+                ['<C-space>'] = lga_actions.to_fuzzy_refine, -- freeze and start fuzzy search on current list and start fuzzy search
+              },
+            },
+          },
         },
       }
 
       -- Enable Telescope extensions if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
+      pcall(require('telescope').load_extension, 'live_grep_args')
 
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
@@ -439,6 +456,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader>sc', builtin.commands, { desc = '[S]earch [C]ommands' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+      vim.keymap.set('n', '<leader>sG', ":lua require('telescope').extensions.live_grep_args.live_grep_args()<CR>")
 
       -- This runs on LSP attach per buffer (see main LSP attach function in 'neovim/nvim-lspconfig' config for more info,
       -- it is better explained there). This allows easily switching between pickers if you prefer using something else!
