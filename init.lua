@@ -694,10 +694,6 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
-        -- gopls = {},
-        -- pyright = {},
-        -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
@@ -711,11 +707,25 @@ require('lazy').setup({
         eslint = {},
         html = {},
         jsonls = {},
-        pylsp = {},
         pyright = {},
         stylelint_lsp = {},
         ts_ls = {},
+        ruff = {},
 
+        -- ty = { -- ty
+        --   cmd = { 'ty', 'server' },
+        --   filetypes = { 'python' },
+        --   settings = {
+        --     ty = {
+        --       -- diagnosticMode = 'workspace',
+        --       -- experimental = {
+        --       --   rename = true,
+        --       --   auto_import = true,
+        --       -- },
+        --     },
+        --   },
+        -- },
+        --
         tailwindcss = {
           -- v4 requires detecting root by package.json or .git, not just tailwind.config.js
           root_dir = function(fname)
@@ -824,6 +834,7 @@ require('lazy').setup({
         typescript = { 'eslint_d', 'prettierd' },
         css = { 'prettierd' },
         html = { 'prettierd' },
+        python = { 'ruff' },
       },
     },
   },
@@ -1006,6 +1017,7 @@ require('lazy').setup({
   -- },
 
   -- Highlight todo, notes, etc in comments
+
   {
     'folke/todo-comments.nvim',
     dependencies = { 'nvim-lua/plenary.nvim' },
