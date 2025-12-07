@@ -643,6 +643,10 @@ require('lazy').setup({
 
         stylua = {}, -- Used to format Lua code
         angularls = {},
+
+        html = {},
+        jsonls = {},
+
         eslint = {
           settings = {
             experimental = {
@@ -650,27 +654,8 @@ require('lazy').setup({
             },
           },
         },
-        html = {},
-        jsonls = {},
-        -- pyright = {},
+
         stylelint_lsp = {},
-        ts_ls = {},
-        ruff = {},
-
-        ty = {
-          cmd = { 'ty', 'server' },
-          filetypes = { 'python' },
-          settings = {
-            ty = {
-              diagnosticMode = 'workspace',
-              experimental = {
-                rename = true,
-                auto_import = true,
-              },
-            },
-          },
-        },
-
         tailwindcss = {
           -- v4 requires detecting root by package.json or .git, not just tailwind.config.js
           root_dir = function(fname)
@@ -685,6 +670,25 @@ require('lazy').setup({
             )
             return root_pattern(fname)
           end,
+        },
+
+        -- Run special disable logic at bottom of file to disable ts_ls if angular_ls is on
+        angularls = {},
+        ts_ls = {},
+
+        ruff = {},
+        ty = {
+          cmd = { 'ty', 'server' },
+          filetypes = { 'python' },
+          settings = {
+            ty = {
+              diagnosticMode = 'workspace',
+              experimental = {
+                rename = true,
+                auto_import = true,
+              },
+            },
+          },
         },
 
         -- Special Lua Config, as recommended by neovim help docs
@@ -1125,10 +1129,6 @@ require('lazy').setup({
   -- require 'kickstart.plugins.neo-tree',
   -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommended keymaps
 
-  -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
-  --    This is the easiest way to modularize your config.
-  --
-  --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   { import = 'custom.plugins' },
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
@@ -1137,8 +1137,6 @@ require('lazy').setup({
   -- you can continue same window with `<space>sr` which resumes last telescope search
 }, { ---@diagnostic disable-line: missing-fields
   ui = {
-    -- If you are using a Nerd Font: set icons to an empty table which will use the
-    -- default lazy.nvim defined Nerd Font icons, otherwise define a unicode icons table
     icons = vim.g.have_nerd_font and {} or {
       cmd = '⌘',
       config = '🛠',
@@ -1155,6 +1153,38 @@ require('lazy').setup({
       lazy = '💤 ',
     },
   },
+})
+
+vim.api.nvim_create_autocmd('LspAttach', {
+  callback = function(args)
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+    local bufnr = args.buf
+
+    -- Only run this logic if the new client is ts_ls or angularls
+    if client.name == 'ts_ls' or client.name == 'angularls' then
+      -- Get all clients currently attached to this buffer
+      local all_clients = vim.lsp.get_clients { bufnr = bufnr }
+      local has_angular = false
+      local ts_client = nil
+
+      -- Check what's active
+      for _, c in ipairs(all_clients) do
+        if c.name == 'angularls' then
+          has_angular = true
+        end
+        if c.name == 'ts_ls' then
+          ts_client = c
+        end
+      end
+
+      -- If both are active, mute ts_ls references
+      if has_angular and ts_client then
+        ts_client.server_capabilities.referencesProvider = false
+        -- Optional: print a message to confirm it's working (check :messages)
+        -- print("Detected Angular + TS: Muted ts_ls references")
+      end
+    end
+  end,
 })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
