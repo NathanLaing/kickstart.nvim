@@ -92,9 +92,6 @@ vim.keymap.set('i', 'jk', '<Esc>')
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
--- Git blame
-vim.keymap.set('n', '<leader>b', ':Gitsigns toggle_current_line_blame<CR>')
-
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
 -- is not what someone will guess without a bit more experience.
@@ -156,27 +153,27 @@ require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'NMAC427/guess-indent.nvim', -- Detect tabstop and shiftwidth automatically
 
-  -- See `:help gitsigns` to understand what the configuration keys do
-  { -- Adds git related signs to the gutter, as well as utilities for managing changes
-    'lewis6991/gitsigns.nvim',
-    opts = {
-      current_line_blame = false, -- toggle to turn on git blame for current line
-      current_line_blame_opts = {
-        virt_text = true,
-        virt_text_pos = 'eol',
-        delay = 300,
-        ignore_whitespace = false,
-      },
-      current_line_blame_formatter = '<author>, <author_time:%R> - <summary>',
-      signs = {
-        add = { text = '+' },
-        change = { text = '~' },
-        delete = { text = '_' },
-        topdelete = { text = '‾' },
-        changedelete = { text = '~' },
-      },
-    },
-  },
+  -- -- See `:help gitsigns` to understand what the configuration keys do
+  -- { -- Adds git related signs to the gutter, as well as utilities for managing changes
+  --   'lewis6991/gitsigns.nvim',
+  --   opts = {
+  --     current_line_blame = false, -- toggle to turn on git blame for current line
+  --     current_line_blame_opts = {
+  --       virt_text = true,
+  --       virt_text_pos = 'eol',
+  --       delay = 300,
+  --       ignore_whitespace = false,
+  --     },
+  --     current_line_blame_formatter = '<author>, <author_time:%R> - <summary>',
+  --     signs = {
+  --       add = { text = '+' },
+  --       change = { text = '~' },
+  --       delete = { text = '_' },
+  --       topdelete = { text = '‾' },
+  --       changedelete = { text = '~' },
+  --     },
+  --   },
+  -- },
 
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
   --
