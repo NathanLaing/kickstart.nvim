@@ -1,17 +1,3 @@
-local function make_variants(roots)
-  local variants = {}
-  for _, root in ipairs(roots) do
-    local upper = root:upper()
-    local lower = root:lower()
-
-    table.insert(variants, upper)
-    table.insert(variants, lower)
-  end
-  return variants
-end
-
---[[
-
 =====================================================================
 ==================== READ THIS BEFORE CONTINUING ====================
 =====================================================================
@@ -105,6 +91,9 @@ vim.g.maplocalleader = ' '
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 vim.opt.guifont = 'JetBrainsMono Nerd Font:h14'
+
+vim.opt.title = true
+vim.opt.titlestring = '%t %m'
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
@@ -202,6 +191,9 @@ vim.diagnostic.config {
 }
 
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+
+-- Git blame
+vim.keymap.set('n', '<leader>b', ':Gitsigns toggle_current_line_blame<CR>')
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -654,28 +646,34 @@ require('lazy').setup({
 
         stylua = {}, -- Used to format Lua code
         angularls = {},
-        eslint = {},
+        eslint = {
+          settings = {
+            experimental = {
+              useFlatConfig = false,
+            },
+          },
+        },
         html = {},
         jsonls = {},
-        pyright = {},
+        -- pyright = {},
         stylelint_lsp = {},
         ts_ls = {},
         ruff = {},
 
-        -- ty = { -- ty
-        --   cmd = { 'ty', 'server' },
-        --   filetypes = { 'python' },
-        --   settings = {
-        --     ty = {
-        --       -- diagnosticMode = 'workspace',
-        --       -- experimental = {
-        --       --   rename = true,
-        --       --   auto_import = true,
-        --       -- },
-        --     },
-        --   },
-        -- },
-        --
+        ty = {
+          cmd = { 'ty', 'server' },
+          filetypes = { 'python' },
+          settings = {
+            ty = {
+              diagnosticMode = 'workspace',
+              experimental = {
+                rename = true,
+                auto_import = true,
+              },
+            },
+          },
+        },
+
         tailwindcss = {
           -- v4 requires detecting root by package.json or .git, not just tailwind.config.js
           root_dir = function(fname)
@@ -851,7 +849,7 @@ require('lazy').setup({
         -- <c-k>: Toggle signature help
         --
         -- See :h blink-cmp-config-keymap for defining your own keymap
-        preset = 'default',
+        preset = 'super-tab',
 
         -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
         --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
@@ -907,7 +905,7 @@ require('lazy').setup({
       -- the rust implementation via `'prefer_rust_with_warning'`
       --
       -- See :h blink-cmp-config-fuzzy for more information
-      fuzzy = { implementation = 'lua' },
+      fuzzy = { implementation = 'prefer_rust_with_warning' },
 
       -- Shows a signature help window while you type arguments for a function
       signature = { enabled = true },
@@ -934,69 +932,52 @@ require('lazy').setup({
     end,
   },
 
-  -- Old school Webstorm color scheme
-  --  {
-  --    'xiantang/darcula-dark.nvim',
-  --    dependencies = { 'nvim-treesitter/nvim-treesitter' },
-  --    priority = 1000,
-  --    config = function()
-  --      vim.cmd 'colorscheme darcula-dark'
-  --    end,
-  --  },
-
-  -- { -- You can easily change to a different colorscheme.
-  --   -- Change the name of the colorscheme plugin below, and then
-  --   -- change the command in the config to whatever the name of that colorscheme is.
-  --   --
-  --   -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-  --   'folke/tokyonight.nvim',
-  --   priority = 1000, -- Make sure to load this before all the other start plugins.
-  --   config = function()
-  --     ---@diagnostic disable-next-line: missing-fields
-  --     require('tokyonight').setup {
-  --       styles = {
-  --         comments = { italic = false }, -- Disable italics in comments
-  --       },
-  --     }
-
-  --     -- Load the colorscheme here.
-  --     -- Like many other themes, this one has different styles, and you could load
-  --     -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-  --     vim.cmd.colorscheme 'tokyonight-night'
-  --   end,
-  -- },
-
   -- Highlight todo, notes, etc in comments
-
   {
     'folke/todo-comments.nvim',
-    event = 'VimEnter',
+    config = function()
+      local function make_variants(roots)
+        local variants = {}
+        for _, root in ipairs(roots) do
+          local upper = root:upper()
+          local lower = root:lower()
+
+          table.insert(variants, upper)
+          table.insert(variants, lower)
+        end
+        return variants
+      end
+
+      require('todo-comments').setup {
+              event = 'VimEnter',
     dependencies = { 'nvim-lua/plenary.nvim' },
     ---@module 'todo-comments'
     ---@type TodoOptions
     ---@diagnostic disable-next-line: missing-fields
-    opts = {
-      signs = true,
-      keywords = {
-        FIX = {
-          icon = ' ', -- icon used for the sign, and in search results
-          color = 'error', -- can be a hex color, or a named color
-          alt = make_variants { 'FIXME', 'BUG', 'FIXIT', 'ISSUE' },
+        opts = {
+          signs = true,
+          keywords = {
+            FIX = {
+              icon = ' ', -- icon used for the sign, and in search results
+              color = 'error', -- can be a hex color, or a named color
+              alt = make_variants { 'FIXME', 'BUG', 'FIXIT', 'ISSUE' },
+            },
+            TODO = {
+              icon = ' ',
+              color = 'info',
+              alt = make_variants { 'TODO', 'TO DO' },
+            },
+            HACK = { icon = ' ', color = 'warning', alt = make_variants { 'HACK' } },
+            WARN = { icon = ' ', color = 'warning', alt = make_variants { 'WARNING', 'XXX' } },
+            PERF = {
+              icon = ' ',
+              alt = make_variants { 'OPTIMIZE', 'OPTIMISE', 'PERFORMANCE', 'PERF' },
+            },
+            NOTE = { icon = ' ', color = 'hint', alt = make_variants { 'INFO' } },
+          },
         },
-        TODO = {
-          icon = ' ',
-          color = 'info',
-          alt = make_variants { 'TODO', 'TO DO' },
-        },
-        HACK = { icon = ' ', color = 'warning', alt = make_variants { 'HACK' } },
-        WARN = { icon = ' ', color = 'warning', alt = make_variants { 'WARNING', 'XXX' } },
-        PERF = {
-          icon = ' ',
-          alt = make_variants { 'OPTIMIZE', 'OPTIMISE', 'PERFORMANCE', 'PERF' },
-        },
-        NOTE = { icon = ' ', color = 'hint', alt = make_variants { 'INFO' } },
-      },
-    },
+      }
+    end,
   },
 
   { -- Collection of various small independent plugins/modules
