@@ -1,3 +1,5 @@
+--[[
+
 =====================================================================
 ==================== READ THIS BEFORE CONTINUING ====================
 =====================================================================
@@ -642,7 +644,6 @@ require('lazy').setup({
         -- ts_ls = {},
 
         stylua = {}, -- Used to format Lua code
-        angularls = {},
 
         html = {},
         jsonls = {},
@@ -1161,7 +1162,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
     local bufnr = args.buf
 
     -- Only run this logic if the new client is ts_ls or angularls
-    if client.name == 'ts_ls' or client.name == 'angularls' then
+    if client ~= nil and (client.name == 'ts_ls' or client.name == 'angularls') then
       -- Get all clients currently attached to this buffer
       local all_clients = vim.lsp.get_clients { bufnr = bufnr }
       local has_angular = false
